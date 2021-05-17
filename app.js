@@ -52,40 +52,64 @@ const studentenArray2 = [studentFactory('FactoryStudent1'), studentFactory('Fact
 
 // Aufgabe 6
 
+// Configuration
+
 const express = require('express');
 const app = express();
 
-// port
+let path = require('path');
+
+const {check, validationResult} = require('express-validator');
+const cookieParser = require('cookie-parser');
+
 const port = 3000;
 const router = express.Router();
 
-router.get('/student', function (req, res) {
-    let messageArray = [];
-    studentenArray.forEach(s => {
-        messageArray.push(s.toString());
-        messageArray.push("\n");
-    });
-    res.send(messageArray.join(""));
-});
+const consolidate = require('consolidate')
+
+// const fetch = require("node-fetch");
+
+app.use(cookieParser());
+// app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({extended: true}));
+app.use(router);
+
+app.engine('html', consolidate.mustache);
+app.set('view engine', 'html');
+app.set('views', path.join(__dirname, 'views'))
 
 app.listen(port, function () {
-    console.log('Example app listening on port 3000!');
+    console.log('Example app listening on port ' + port + '!');
 });
 
-router.get('/studentFactory', function (req, res) {
-    let studentFactory = createStudentFactory(5);
+router.get('/',
+    (req, res) => {
+        let cookie_data = 'Erster Besuch!';
+        if (req.cookies.date != null) {
+            cookie_data = req.cookies.date;
+        }
+        res.render('index_tpl', {cookie_data: cookie_data});
+        res.cookie('date', new Date().toUTCString(), {overwrite: true});
+    });
 
-    let studentMax = studentFactory('Max');
+router.get('/student',
+    (req, res) => {
+        let messageArray = [];
+        studentenArray.forEach(s => {
+            messageArray.push(s.toString());
+            messageArray.push("\n");
+        });
+        res.send(messageArray.join(""));
+    });
 
-    res.send(studentMax.toString());
-});
+router.get('/studentFactory',
+    (req, res) => {
+        let studentFactory = createStudentFactory(5);
 
-let path = require('path');
-app.use(express.static(path.join(__dirname, 'public')));
+        let studentMax = studentFactory('Max');
 
-const {check, validationResult} = require('express-validator');
-
-const cookieParser = require('cookie-parser');
+        res.send(studentMax.toString());
+    });
 
 function validationError(req, res, next) {
     const errors = validationResult(req);
@@ -94,24 +118,10 @@ function validationError(req, res, next) {
     } else {
         next();
     }
+
 }
 
-router.get('/print',
-    [
-        check('note')
-            .isIn(["sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend"]),
-        check('name')
-            .escape()
-            .trim(),
-        validationError
-    ],
-    (req, res) => {
-        res.send(req.query);
-    });
-
-app.use(express.urlencoded({extended: true}));
-
-router.post('/print', [
+router.all('/print', [
         check('note')
             .isIn(["sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend"]),
         check('name')
@@ -120,17 +130,8 @@ router.post('/print', [
         validationError],
     (req, res) => {
         res.send(req.body);
-        console.log(req.cookies);
-    });
-
-app.use('/', router);
-
-app.use(cookieParser());
-
-router.get('/',
-    function (req, res, next) {
-        res.cookie('Date', Date.now().toString());
-        res.send(' ');
+        console.log('Cookies: ', req.cookies)
+        console.log('Signed Cookies: ', req.signedCookies)
     });
 
 
