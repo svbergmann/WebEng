@@ -1,1 +1,1 @@
-Abgabe dieses Mal nur von mir, Sven Bergmann, da ich seit ca. 2 Abgaben keine Antwort mehr von meinen Teampartnern erhalte. (siehe Discord-Chat)
+Abgabe wieder nur von mir, Sven Bergmann, da ich seit mittlerweile ca. 3 Abgaben keine Antwort mehr von meinen Teampartnern erhalte. (siehe Discord-Chat)
