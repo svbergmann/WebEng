@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Studenten-Infos</title>
+    <script src="../modules/student.js"></script>
+    <script src="app.js"></script>
+</head>
+
+<body>
+<form method="POST" action="/print">
+    <div class="form-group">
+        <label>Name</label> <label>
+        <input type="text" class="form-control" name="name" placeholder="Name"
+               required="required">
+    </label>
+    </div>
+
+    <div class="form-group">
+        <label>Passwort</label> <label>
+        <input type="password" class="form-control" name="password" placeholder="Passwort"
+               required="required">
+    </label>
+    </div>
+
+    <div class="form-group">
+        <label>Note</label> <label>
+        <select class="form-control" name="note">
+            <option value="sehr gut">
+                sehr gut
+            </option>
+
+            <option value="gut">
+                gut
+            </option>
+
+            <option value="befriedigend">
+                befriedigend
+            </option>
+
+            <option value="ausreichend">
+                ausreichend
+            </option>
+
+            <option value="mangelhaft">
+                mangelhaft
+            </option>
+
+            <option value="ungenügend">
+                ungenügend
+            </option>
+        </select>
+    </label>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary" name="submit_button" value="Senden">
+    </div>
+</form>
+</body>
+
+</html>
