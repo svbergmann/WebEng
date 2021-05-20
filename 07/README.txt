@@ -1,0 +1,1 @@
+Abgabe wieder nur von mir, Sven Bergmann, da ich seit mittlerweile ca. 4 Abgaben keine Antwort mehr von meinen Teampartnern erhalte. (siehe Discord-Chat)
