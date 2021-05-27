@@ -19,31 +19,24 @@ router.post('/', function (req, res) {
 
 router.get('/:id', function (req, res) {
     res.type('application/json');
-    console.log(req.params.id);
-    console.log(todos.getTodo(req.params.id));
-    res.send(todos.getTodo(req.params.id));
+    res.send(todos.getTodo(parseInt(req.params.id)));
 });
 
 router.delete('/:id', function (req, res) {
     res.type('application/json');
-    // Ausgabe zum testen
-    if (todos.removeTodo(req.query.id)) {
-        res.send('Todo with id ' + req.query.id + ' removed.');
-    } else {
-        res.send('Could not remove Todo with id ' + req.query.id + '.');
-    }
+    todos.removeTodo(parseInt(req.params.id));
+    res.send();
 });
 
-router.delete('/:done', function (req, res) {
-    if (req.query.done === 'true') {
+router.delete('/', function (req, res) {
+    if (req.query.done !== 'true') {
+        todos.clear();
+        res.send();
+    } else {
         todos.clearDone();
         res.type('application/json');
         res.send(todos.getAllTodos());
     }
-});
-
-router.delete('/', function () {
-    todos.clear();
 });
 
 router.patch('/:id', function (req, res) {
@@ -51,11 +44,11 @@ router.patch('/:id', function (req, res) {
     if (req.body[0].op === 'replace') {
         if (req.body[0].path === '/done') {
             if (req.body[0].value === true) {
-                todos.setDone(req.params.id, true);
-                res.send(todos.getTodo(req.params.id));
+                todos.setDone(parseInt(req.params.id), true);
+                res.send(todos.getTodo(parseInt(req.params.id)));
             } else {
-                todos.setDone(req.params.id, false);
-                res.send(todos.getTodo(req.params.id));
+                todos.setDone(parseInt(req.params.id), false);
+                res.send(todos.getTodo(parseInt(req.params.id)));
             }
         }
     }
