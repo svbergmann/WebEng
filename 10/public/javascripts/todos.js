@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function () {
 
-    const listNode = document.getElementById('list') // id der unordered list im HTML
+    const listNode = document.getElementById('list'); // id der unordered list im HTML
 
     document.getElementById('newTodo')
         .addEventListener('click', async function () {
@@ -10,40 +10,100 @@ document.addEventListener('DOMContentLoaded', async function () {
                     headers: {'Content-Type': 'text/plain'},
                     body: document.getElementById('input_todo').value
                 }
-            )
+            );
             await addTodo(await response.json());
         });
 
     function getDeleteClickHandler(itemNode) {
         return async function () {
-            // Löschen eines ToDos im Backend und auf der Website
-            // ToDo: Write your Code here
-        }
+            await fetch('/todos/' + itemNode.id,
+                {
+                    method: "DELETE",
+                    headers: {'Content-Type': 'text/plain'},
+                    body: document.getElementById('input_todo').value
+                }
+            );
+            let index;
+            for (let i = 0; i < document.getElementById("list").childNodes.length; i++) {
+                if (parseInt(document.getElementById("list").children[i].id)
+                    === parseInt(itemNode.id)) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index != null) {
+                document.getElementById("list").children[index].remove();
+            }
+        };
     }
 
     function getDoneClickHandler(itemNode) {
         return async function () {
-            // Ändern (done/undone) eines ToDos im Backend und auf der Website
-            // ToDo: Write your Code here
+            let response = fetch('/todos/' + itemNode.id,
+                {
+                    method: "GET",
+                    headers: {'Content-Type': 'application/json'}
+                })
+            // TODO: That does not work
+            let todo = (await response).json();
+            console.log(todo);
+            let value;
+            let title = itemNode.title;
+            console.log(todo.done);
+            if (todo.done === true) {
+                value = "false";
+                itemNode.title = title.substring(4, title.length - 7);
+                console.log(itemNode.title);
+            } else {
+                value = "true";
+                itemNode.title = "<del>" + title + "</del>";
+            }
+            console.log(title);
+            console.log(value);
+            let fetchBody = {
+                op: "replace",
+                path: "/done",
+                value: value
+            };
+            await fetch('/todos/' + itemNode.id,
+                {
+                    method: "PATCH",
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(fetchBody)
+                })
         }
     }
+
 
     async function addTodo(item) {
         let response = await fetch('/templates/todos_tpl.html');
         let template = await response.text();
         let rendered = Mustache.render(template, item);
         listNode.insertAdjacentHTML('beforeend', rendered);
+        listNode.lastChild.lastChild.previousSibling
+            .addEventListener('click', getDeleteClickHandler(item));
+        listNode.children[listNode.children.length - 1]
+            .getElementsByClassName("todo_item")[0]
+            .addEventListener('click', getDoneClickHandler(item));
     }
 
-    // Alle ToDos laden (Route /todos sollte ein Array mit JSON-Objekten zurückgeben) &
-    // auf der Website anzeigen (Iteriere über alle JSON-Objekte und rufe addTodo auf)
+// Alle ToDos laden (Route /todos sollte ein Array mit JSON-Objekten zurückgeben) &
+// auf der Website anzeigen (Iteriere über alle JSON-Objekte und rufe addTodo auf)
     async function loadAll() {
-        // ToDo: Write your Code here
+        let response = await fetch('/todos',
+            {
+                method: "GET",
+                headers: {'Content-Type': 'application/json'}
+            }
+        )
+        listNode.innerHTML = '';
+        let todos = await response.json();
+        for (let todo in todos) {
+            await addTodo(todo);
+            console.log(todo);
+        }
     }
 
-
-    // Alle erledigten ToDos löschen &
-    // auf der Website entfernen
     document.getElementById('deleteChecked')
         .addEventListener('click', async function (event) {
             let response = await fetch('/todos?done=true',
@@ -55,26 +115,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             )
             listNode.innerHTML = '';
             let todos = await response.json();
-            console.log(todos);
             if (todos !== null) {
                 for (let todo in todos) {
                     await addTodo(todo);
                 }
             }
-            // ToDo: Write your Code here
-        })
+        });
 
-    async function renderAllTodos() {
-        let todos = await fetch('/todos',
-            {
-                method: "GET",
-                headers: {'Content-Type': 'text/plain'}
-            }
-        )
-        await addTodo(await todos.json());
-
-    }
-
-    // Bei Beginn alle Einträge laden
     await loadAll();
-})
+});
