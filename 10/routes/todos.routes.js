@@ -41,9 +41,9 @@ router.delete('/', function (req, res) {
 
 router.patch('/:id', function (req, res) {
     res.type('application/json');
-    if (req.body[0].op === 'replace') {
-        if (req.body[0].path === '/done') {
-            if (req.body[0].value === true) {
+    if (req.body.op === 'replace') {
+        if (req.body.path === '/done') {
+            if (req.body.value === 'true') {
                 todos.setDone(parseInt(req.params.id), true);
                 res.send(todos.getTodo(parseInt(req.params.id)));
             } else {
