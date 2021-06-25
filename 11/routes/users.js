@@ -6,8 +6,11 @@ const router = express.Router();
 
 router.use(express.urlencoded({extended: true}))
 
-router.post('/check_login', async (req, res) => {
-
+/**
+ * Connects to the sqlite database and returns the sequelize object.
+ * @returns {Promise<Sequelize>} the database connection
+ */
+async function connectToDatabase() {
     const sequelize = new Sequelize({
         dialect: 'sqlite',
         storage: path.join(__dirname, '..', 'db', 'webengDB.db')
@@ -19,6 +22,26 @@ router.post('/check_login', async (req, res) => {
     } catch (error) {
         console.error('Unable to connect to the database:', error);
     }
+
+    return sequelize;
+}
+
+/**
+ * Disconnects from the given database connection.
+ * @param sequelize the database connection
+ */
+async function disconnectFromDatabase(sequelize) {
+    try {
+        await sequelize.close();
+        console.log('Connection has been closed successfully.');
+    } catch (error) {
+        console.error('Unable to close connection to the database:', error);
+    }
+}
+
+router.post('/check_login', async (req, res) => {
+
+    let sequelize = await connectToDatabase();
 
     let result = await sequelize.query(
         'SELECT passwort FROM users WHERE benutzername = :userName ',
@@ -37,7 +60,6 @@ router.post('/check_login', async (req, res) => {
     let userAndPwCorrect = false;
 
     for (let user in userinfos) {
-        console.log(user);
         if (user.password === req.body.pw) {
             userAndPwCorrect = true;
         }
@@ -49,12 +71,28 @@ router.post('/check_login', async (req, res) => {
         res.status(403).send("Wrong login information!")
     }
 
-    try {
-        await sequelize.close();
-        console.log('Connection has been closed successfully.');
-    } catch (error) {
-        console.error('Unable to close connection to the database:', error);
-    }
-})
+    await disconnectFromDatabase(sequelize);
+});
+
+router.post('/register', async (req, res) => {
+
+    let name = req.body.user;
+    let pw = req.body.pw;
+    let note = req.body.note;
+
+    if (name === null || pw === null || note === null) res.status(403).send("Empty field!");
+
+    let sequelize = await connectToDatabase();
+
+    await sequelize.query(
+        'INSERT INTO users (benutzername, passwort, note) VALUES (:benutzername, :passwort, :dbnote)',
+        {
+            replacements: {benutzername: name, passwort: pw, dbnote: note},
+            type: QueryTypes.INSERT
+        }
+    );
+
+    await disconnectFromDatabase(sequelize);
+});
 
 module.exports = router;
