@@ -5,24 +5,25 @@
     <meta charset="UTF-8">
 </head>
 <body>
+<p id="error_message">{{error_message}}</p>
 <form method="POST" action="/users/register">
     <div>
         <label for="inputName">Benutzername:</label>
         <input type="text" name="user"
                id="inputName" placeholder="Name">
     </div>
- 
+
     <div>
         <label for="inputPasswort">Passwort:</label>
         <input type="password" name="pw"
                id="inputPasswort" placeholder="Passwort">
     </div>
- 
+
     <div>
         <label for="inputNote">Note:</label>
         <input type="number" name="note" id="inputNote" placeholder="Note">
     </div>
- 
+
     <div>
         <button type="submit">Registrieren</button>
     </div>
