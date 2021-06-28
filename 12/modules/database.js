@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const Student = require('./student');
 
-module.exports = class Database {
+class Database {
 
     constructor(database) {
         if (typeof database === 'undefined') {
@@ -41,7 +41,7 @@ module.exports = class Database {
     }
 
     async validateUser(user, passwd) {
-        let result = await this._database.query(
+        let result = (await this._database).query(
             'SELECT passwort FROM users WHERE benutzername = :userName ',
             {
                 replacements: {userName: user},
@@ -49,35 +49,25 @@ module.exports = class Database {
             }
         );
 
-        let userInfos = [];
-
-        result.forEach(user => {
-            userInfos.push({name: user.name, password: user.password})
-        });
-
-        for (let user of userInfos) {
-            if (bcrypt.compareSync(passwd, user.password)) {
+        for (let user of await result) {
+            if (await bcrypt.compare(passwd, user.passwort)) {
                 return true;
             }
         }
+
         return false;
     }
 
     async userExists(user) {
-        let result = await this._database.query(
+        let result = (await this._database).query(
             'SELECT passwort FROM users WHERE benutzername = :userName ',
             {
                 replacements: {userName: user},
                 type: QueryTypes.SELECT
             }
         );
-        let userInfos = [];
 
-        result.forEach(user => {
-            userInfos.push({name: user.name, password: user.password})
-        });
-
-        return userInfos.length !== 0;
+        return (await result).length !== 0;
     }
 
     /**
@@ -90,33 +80,32 @@ module.exports = class Database {
     async registerUser(user, passwd, note) {
         let hashedPW = bcrypt.hashSync(passwd, 8);
 
-        await this._database.query(
+        let result = (await this._database).query(
             'INSERT INTO users (benutzername, passwort, note) VALUES (:benutzername, :passwort, :dbnote)',
             {
-                replacements: {benutzername: user, passwort: hashedPW, dbnote: note},
+                replacements: {benutzername: user, passwort: await hashedPW, dbnote: note},
                 type: QueryTypes.INSERT
             }
         );
+
+        return await result;
     }
 
     async getStudent(user) {
-        let result = await this._database.query(
+        let result = (await this._database).query(
             'SELECT note FROM users WHERE benutzername = :userName ',
             {
                 replacements: {userName: user},
                 type: QueryTypes.SELECT
             }
         );
-        let students = [];
 
-        result.forEach(user => {
-            const student = new Student(user.name);
-            student.setNote(user.note);
-            students.push(student);
-        });
-
-        if (students.length !== 0) {
-            return students[0];
+        for (let user of await result) {
+            if (user) {
+                const student = new Student(user);
+                student.setNote(user.note);
+                return student;
+            }
         }
     }
 
@@ -133,4 +122,4 @@ module.exports = class Database {
     }
 }
 
-// module.exports = Database;
+module.exports = Database;

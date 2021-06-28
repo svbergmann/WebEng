@@ -22,7 +22,9 @@ app.use(session({
     secret: 'database session secret',
     name: 'database_cookie_name',
     resave: true,
-    saveUninitialized: true
+    loggedInUser: '',
+    saveUninitialized: true,
+    cookie: {secure: true}
 }));
 
 app.engine('html', consolidate.mustache);

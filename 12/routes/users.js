@@ -8,21 +8,15 @@ router.use(express.urlencoded({extended: true}))
 
 router.post('/check_login',
     async (req, res) => {
-        let userAndPwCorrect;
-        Database.getInstance()
-            .then(database => {
-                database.validateUser(req.body.user, req.body.pw);
-            }).then(result => {
-            userAndPwCorrect = result;
-        })
-        // let userAndPwCorrect = await Database.getInstance().validateUser(req.body.user, req.body.pw)
-        //     .catch(res.status(403).send("Could not validate user!"));
+        let userAndPwCorrect = (await Database.getInstance()).validateUser(req.body.user, req.body.pw);
 
-        if (userAndPwCorrect) {
-            req.session.loggedInUser = req.body.user;
-            res.render('/info_tpl', {
+        if (await userAndPwCorrect) {
+            if (req.session) {
+                req.session.loggedInUser = req.body.user;
+            }
+            res.render('info_tpl', {
                 benutzer: req.body.user,
-                note: Student.getNotenBewertung(Database.getInstance().getStudent(req.body.user).getNote())
+                note: Student.getNotenBewertung((await (await Database.getInstance()).getStudent(req.body.user)).getNote())
             });
         } else {
             res.status(403).send("Wrong login information!")
@@ -46,7 +40,7 @@ router.post('/register',
 
             if (name === null || pw === null || note === null) res.status(403).send("Empty field!");
 
-            await Database.getInstance().registerUser(name, pw, note);
+            let result = (await Database.getInstance()).registerUser(name, pw, note);
 
             res.render('register_tpl', {error_message: 'Successfully registered.'});
         }
