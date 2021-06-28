@@ -11,9 +11,7 @@ router.post('/check_login',
         let userAndPwCorrect = (await Database.getInstance()).validateUser(req.body.user, req.body.pw);
 
         if (await userAndPwCorrect) {
-            if (req.session) {
-                req.session.loggedInUser = req.body.user;
-            }
+            req.session.loggedInUser = req.body.user;
             res.render('info_tpl', {
                 benutzer: req.body.user,
                 note: Student.getNotenBewertung((await (await Database.getInstance()).getStudent(req.body.user)).getNote())
