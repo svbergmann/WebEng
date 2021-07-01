@@ -2,8 +2,6 @@ const express = require('express')
 const router = express.Router();
 const {check, validationResult} = require('express-validator');
 const Database = require('../modules/database');
-const Student = require('../modules/student');
-
 router.use(express.urlencoded({extended: true}))
 
 router.post('/check_login',
@@ -12,10 +10,7 @@ router.post('/check_login',
 
         if (await userAndPwCorrect) {
             req.session.loggedInUser = req.body.user;
-            res.render('info_tpl', {
-                benutzer: req.body.user,
-                note: Student.getNotenBewertung((await (await Database.getInstance()).getStudent(req.body.user)).getNote())
-            });
+            res.redirect('../info');
         } else {
             res.status(403).send("Wrong login information!")
         }
@@ -38,8 +33,7 @@ router.post('/register',
 
             if (name === null || pw === null || note === null) res.status(403).send("Empty field!");
 
-            let result = (await Database.getInstance()).registerUser(name, pw, note);
-
+            await (await Database.getInstance()).registerUser(name, pw, note);
             res.render('register_tpl', {error_message: 'Successfully registered.'});
         }
     });
@@ -49,7 +43,19 @@ router.get('/register', (req, res) => {
 });
 
 router.get('/login', (req, res) => {
-    res.render('login_tpl');
-})
+    if (req.session.loggedInUser) {
+        if (req.session.loggedInUser !== 'undefined') {
+            res.redirect('../info');
+        }
+    } else {
+        res.render('login_tpl');
+    }
+});
+
+router.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('../');
+});
+
 
 module.exports = router;

@@ -1,8 +1,9 @@
 const express = require('express');
 const app = express();
-const path = require('path')
+const path = require('path');
 const port = 3000;
-const users = require('./routes/users')
+const users = require('./routes/users');
+const info = require('./routes/info');
 const consolidate = require('consolidate');
 const session = require('express-session');
 
@@ -21,6 +22,7 @@ app.use(session({
 app.use('/scripts/mustache', express.static(path.join(__dirname, 'node_modules/mustache')));
 
 app.use('/users', users);
+app.use('/info', info);
 
 app.use('/', (req, res) => {
     res.redirect('/users/login');
@@ -28,4 +30,4 @@ app.use('/', (req, res) => {
 
 app.engine('html', consolidate.mustache);
 app.set('view engine', 'html');
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, 'views'));
